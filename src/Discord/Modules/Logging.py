@@ -29,7 +29,6 @@ class Logging(commands.Cog):
         self.bot = bot
 
     async def cog_check(self,ctx):
-        print(ctx.invoked_subcommand.name)
         try:
             if ctx.invoked_subcommand.name in ['clear', 'stop', 'disable', 'none', 'remove', 'delete']:
                 return True
@@ -138,27 +137,20 @@ class Logging(commands.Cog):
             await channel.send(content=None, embed=embed)
 
     @commands.Cog.listener()
-    async def on_user_update(self, before, after):
-        channel = self.bot.get_channel(self.bot.config['guilds'][str(before.guild.id)]['logchannel'])
-        if channel is not None and before.name != after.name:
-            embed = generic_embed(description='{}'.format(after.mention), color=COLORS['YELLOW'],
-                                  footer='User ID: {}'.format(before.id),
-                                  fields={
-                                      'Before': before.name,
-                                      'After': after.name
-                                  })
-            embed.set_author(name='Username Changed'.format(before.name,before.discriminator), icon_url=after.avatar_url)
-            await channel.send(content=None, embed=embed)
-
-    @commands.Cog.listener()
     async def on_member_ban(self, guild, member):
         channel = self.bot.get_channel(self.bot.config['guilds'][str(guild.id)]['logchannel'])
         if channel is not None:
             reason = str((await guild.fetch_ban(member)).reason).split(':')
-            embed = generic_embed(title='User `{}` banned.'.format(member.mention),
-                                  description='**Name:** {}\n**Reason:** `{}`'.format(reason[0],reason[1]),
-                                  color=COLORS['ORANGE'],
-                                  footer='User ID: {} | {}'.format(member.id, str(datetime.datetime.now())))
+            if reason:
+                embed = generic_embed(title='User `{}` banned.'.format(member.mention),
+                                      description='**Name:** {}\n**Reason:** `{}`'.format(reason[0],reason[1]),
+                                      color=COLORS['ORANGE'],
+                                      footer='User ID: {} | {}'.format(member.id, str(datetime.datetime.now())))
+            else:
+                embed = generic_embed(title='User `{}` banned.'.format(member.mention),
+                                      description='**Name:** {}'.format(member.name),
+                                      color=COLORS['ORANGE'],
+                                      footer='User ID: {} | {}'.format(member.id, str(datetime.datetime.now())))
             await channel.send(content=None, embed=embed)
 
     @commands.Cog.listener()
@@ -172,15 +164,18 @@ class Logging(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
-        channel = self.bot.get_channel(self.bot.config['guilds'][str(before.guild.id)]['logchannel'])
-        if channel is not None and before.content != after.content and self.valid_channel(before.channel.id, guild_id=before.guild.id):
-            embed = generic_embed(description='**Message Edited in {}**'.format(before.channel.mention),
-                                  color=COLORS['AQUA'], footer='User ID: {}'.format(before.id),
-                                  fields={
-                                      'Before': before.content,
-                                      'After': after.content
-                                  }, author=before.author)
-            await channel.send(content=None, embed=embed)
+        try:
+            channel = self.bot.get_channel(self.bot.config['guilds'][str(after.guild.id)]['logchannel'])
+            if channel is not None and before.content != after.content and self.valid_channel(before.channel.id, guild_id=before.guild.id):
+                embed = generic_embed(description='**Message Edited in {}**'.format(before.channel.mention),
+                                      color=COLORS['AQUA'], footer='User ID: {}'.format(before.id),
+                                      fields={
+                                          'Before': before.content,
+                                          'After': after.content
+                                      }, author=before.author)
+                await channel.send(content=None, embed=embed)
+        except:
+            print("Message Edit Error: {} is no longer in this discord.".format(before.name))
 
     @commands.Cog.listener()
     async def on_raw_bulk_message_delete(self, payload):
@@ -190,8 +185,9 @@ class Logging(commands.Cog):
             if messages is not None:
                 content = ''
                 for message in messages:
-                    content = content + '{}#{}\n{}\n'.format(message.author.name, message.author.discriminator, message.content)
-                embed = generic_embed(description='**{} Messages Deleted in <#{}>\n'.format(str(len(messages)), payload.channel_id)+content,
+                    content = content + '**{}#{}**\n{}\n'.format(message.author.name, message.author.discriminator, message.content)
+                content = (content[:1500] + "\n...") if len(content) > 1500 else content
+                embed = generic_embed(description='**{} Messages Deleted in <#{}>**\n'.format(str(len(messages)), payload.channel_id)+content,
                                       color=COLORS['RED'], author=self.bot.author)
             else:
                 idList = ''
@@ -204,7 +200,7 @@ class Logging(commands.Cog):
     @commands.Cog.listener()
     async def on_raw_message_delete(self, payload):
         channel = self.bot.get_channel(self.bot.config['guilds'][str(payload.guild_id)]['logchannel'])
-        if channel is not None and self.valid_channel(payload.channel_id):
+        if channel is not None and self.valid_channel(payload.channel_id, guild_id=payload.guild_id):
             message = payload.cached_message
             if message is not None:
                 embed = generic_embed(description='**Message Deleted in {}**'.format(message.channel.mention) + '\n{}'.format(message.content),

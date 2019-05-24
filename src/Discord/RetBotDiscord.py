@@ -81,27 +81,18 @@ def initialize():
     def is_owner(message):
         return message.author.id == int(retBot.config['owner'])
 
-    def blacklist_filter(payload, guild_id: typing.Optional[str]=None):
-        blacklist = None
-        testString = None
-        if guild_id is None:
-            guild_id = str(payload.guild.id)
+    def blacklist_filter(word, guild_id: typing.Optional[str]=None):
         try:
+            guild_id = str(guild_id)
             blacklist = retBot.config['guilds'][guild_id]['blacklist']['words']
-            if type(payload) == Message:
-                testString = payload.content
-            if type(payload) == Member:
-                testString = payload.nick
-            if type(payload) == User:
-                testString = payload.name
-            if blacklist and testString is not None:
+            if blacklist and word is not None:
                 regex = '^(?!.*(?:\\b'
                 for word in blacklist:
                     regex = regex+word+'\\b|'
                 regex = (regex[:regex.rindex('|')] if ('|' in regex) else regex)
                 regex = regex + '))'
-                match = re.match(regex, testString, re.I)
-                print(match + '|{}|{}'.format(regex, testString))
+                match = re.match(regex, word, re.I)
+                print(match + '|{}|{}'.format(regex, word))
                 if match:
                     return True
                 return False
@@ -118,15 +109,6 @@ def initialize():
         except:
             await ctx.send(content="Failed to reload config")
 
-    @retBot.command()
-    @commands.check(is_admin)
-    async def blacklist(ctx, action, word):
-        if action == 'add':
-            retBot.config['guilds'][str(ctx.guild.id)]['blacklist']['words'].append(word)
-        if action in ['remove', 'delete']:
-            retBot.config['guilds'][str(ctx.guild.id)]['blacklist']['words'].remove(word)
-        retBot.save()
-
     @retBot.event
     async def on_guild_join(guild):
         try:
@@ -138,48 +120,17 @@ def initialize():
                     'users':[],
                     'words':[]
                 },
-                'admins':[]
+                'admins':[],
+                'logchannel': None,
+                'watch':{},
+                'reactions':{}
             }
             retBot.save()
-
-    @retBot.event
-    async def on_member_update(before, after):
-        retBot.skip_nxtUpdate = False
-        print('-------------------------------')
-        print(before)
-        print('-------------------------------')
-        print(after)
-        print('-------------------------------')
-        if not blacklist_filter(after) and not retBot.skip_nxtUpdate:
-            await after.send(content="'{}' violates **{}'s** blacklist. Your new nickname was reset to your previous name.".format(after.nick, after.guild.name))
-            try:
-                if after.nick == before.nick:
-                    await after.edit(reason='Name violates the blacklist', nick=None)
-                    retBot.skip_nxtUpdate = True
-                else:
-                    await after.edit(reason='Name violates the blacklist', nick=before.nick)
-                    retBot.skip_nxtUpdate = True
-            except Forbidden:
-                print("Unable to reset username due to permission conflicts.")
-        elif retBot.skip_nxtUpdate:
-            retBot.skip_nxtUpdate = False
 
     @retBot.event
     async def on_command_error(ctx, error):
         #await ctx.send(content="{}".format(error))
         print('Command Error: '+str(error))
-
-    @retBot.event
-    async def on_message(message):
-        if type(message.channel) is DMChannel:
-            pass
-        elif message.author.id == retBot.user.id:
-            pass
-        elif blacklist_filter(message) or is_owner(message):
-            await retBot.process_commands(message)
-        else:
-            #print('Message did not pass blacklist filter: '+message.content)
-            await message.delete(delay=1)
 
     @retBot.event
     async def on_ready():
@@ -200,7 +151,8 @@ def initialize():
                                                                 'users':[],
                                                                 'words':[]
                                                             },
-                                                            'admins':[]
+                                                            'admins':[],
+                                                            'logchannel': None
                                                         }
                 retBot.save()
             print('- '+guild.name)
