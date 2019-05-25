@@ -4,41 +4,40 @@ Discord bot built for EsfandTV Discord @ http://discord.gg/esfandtv
 
 ## Commands
 
-### General
-```
-Permissions: Admin
-1) !reload
-2) !blacklist add/remove WORD
-```
-1) Force reloads the settings file used by the bot.
-2) Add/Removes WORD to/from the blacklist. This is the blacklist that messages, usernames and nicknames are checked against.
-
 ### Admin
 ```
-Permissions: Admin
-1) !log blacklist add/remove
-2) !log blacklist
-3) !log setchannel
-4) !log setchannel clear
-5) !ban MEMBER PURGE (LENGTH) (REASON)
-6) !purge NUMBER
-7) !role reaction EMOJI_ID ROLE_ID
-8) !channel mark/unmark EMOJI_ID
-9) !role add/remove LEVEL_NAME ROLE_ID
-10) !role print (LEVEL_NAME)
+1) !role reaction EMOJI_ID ROLE_ID
+2) !channel mark/unmark EMOJI_ID
+3) !role add/remove LEVEL_NAME ROLE_ID
+4) !permissions set/remove LEVEL_NAME COMMAND_NAME
+5) !log blacklist add/remove
 
 ```
- 1) This adds/removes the channel the command is run in to the ignore list for activity logging.
- 2) Alias for !log blacklist add.
- 3) This sets the channel that will hold activity logs based on the channel the commands is run in.
- 4) This clears and disables activity logging.
- 5) This DMs a MEMBER the ban appeal form and then subsequent bans MEMBER for REASON and purges their activity for PURGE_LENGTH days prior. Reason is optional.
- 6) Deletes NUMBER previous messages
- 7) Adds an EMOJI_ID ROLE_ID pairing so that if a message in a channel that is on watch gets that emoji as a reaction, if will promote that person to the given role.
- 8) Marks/Unmarks a channel to be monitored for reactions using EMOJI_ID
- 9) Adds/Removes an internal permission level of LEVEL_NAME that is paired to all ROLE_ID's added to it.
-10) Prints all roles under LEVEL_NAME or all roles if LEVEL_NAME is not given.
+1) Assigned a ROLE_ID to an EMOJI_ID that is set if a channel that is marked sees that EMOJI_ID as a reaction.
+2) Marks/Unmarks a channel to watch for EMOJI_ID reactions to trigger 1).
+3) Adds/Removes a role assigned to LEVEL_NAME. Multiple roles can be assigned to one LEVEL_NAME.
+4) Sets/Removes COMMAND_NAME permissions from LEVEL_NAME.
+5) Adds/Removes a channel to the blacklist for the activity log.
 
-### Staff
+### Moderator
+```
+1) !permissions print LEVEL_NAME
+2) !ban MEMBER PURGE [LENGTH] [REASON]
+3) !blacklist add/remove WORD
+4) !role print [LEVEL_NAME]
+5) !purge NUMBER
+```
+1) Prints the commands LEVEL has access to
+2) This DMs a MEMBER the ban appeal form and then subsequent bans MEMBER for REASON and purges their activity 
+3) Add/Removes WORD to/from the blacklist. This is the blacklist that messages, usernames and nicknames are checked against.
+4) Prints a list of LEVEL_NAMEs and the corrosponding discord roles. If a LEVEL_NAME is passed then it will only print for that 1 LEVEL_NAME.
+5) Purges NUMBER of previous messages in the channel.
 
-### Users
+
+### Everyone
+```
+1) !item
+2) !spell
+3) !quest
+```
+Unavailable
