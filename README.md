@@ -11,7 +11,6 @@ Discord bot built for EsfandTV Discord @ http://discord.gg/esfandtv
 3) !role add/remove LEVEL_NAME ROLE_ID
 4) !permissions set/remove LEVEL_NAME COMMAND_NAME
 5) !log blacklist add/remove
-
 ```
 1) Assigned a ROLE_ID to an EMOJI_ID that is set if a channel that is marked sees that EMOJI_ID as a reaction.
 2) Marks/Unmarks a channel to watch for EMOJI_ID reactions to trigger 1).
