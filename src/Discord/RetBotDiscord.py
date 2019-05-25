@@ -11,6 +11,8 @@ import typing
 from discord import Color, Embed, Message, TextChannel, User, Member, DMChannel, Forbidden
 from discord.ext import commands
 
+from src.Discord import Utils
+
 
 class RetBotDiscord(commands.Bot):
 
@@ -101,13 +103,15 @@ def initialize():
             return True
 
     @retBot.command()
-    @commands.check(is_admin)
     async def reload(ctx):
-        try:
-            retBot.config = json.load(open('discord.json'))
-            await ctx.send(content='Reload successful')
-        except:
-            await ctx.send(content="Failed to reload config")
+        if Utils.checkPerms(ctx, ctx.author):
+            try:
+                retBot.config = json.load(open('discord.json'))
+                await ctx.send(content='Reload successful')
+            except:
+                await ctx.send(content="Failed to reload config")
+        else:
+            await ctx.send(content='You do not have permissions for this command')
 
     @retBot.event
     async def on_guild_join(guild):

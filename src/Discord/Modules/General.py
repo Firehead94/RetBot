@@ -3,6 +3,8 @@ import typing
 from discord import Embed, Forbidden, Member, DMChannel
 from discord.ext import commands
 import src.Discord.RetBotDiscord as RetBotDiscord
+from src.Discord import Utils
+
 
 async def is_admin(ctx):
     if is_owner(ctx):
@@ -51,40 +53,44 @@ class General(commands.Cog):
             return None
 
     @commands.command()
-    @commands.check(is_admin)
     async def ban(self, ctx, target: Member, delete_days: typing.Optional[int] = 0, *, reason: typing.Optional[str] = None):
-        """Bans a member and sends them a dm with the reason."""
-        if delete_days > 7:
-            await ctx.send('Messages can only be purged up to 7 days.')
-            return
-        finalmessage = await self.sendbanmessage(ctx.guild, target, reason, ctx.author)
-        try:
-            await ctx.guild.ban(target, reason='{}: {}'.format(ctx.author, reason), delete_message_days=delete_days)
-        except Forbidden:
-            embed = Embed(title='Unable to ban `{}`.'.format(target), description='The bot is missing permissions.', color=0xF89817)
-            if finalmessage is not None:
-                await finalmessage.delete()
-            await ctx.send(content=None, embed=embed)
+        if Utils.checkPerms(ctx, ctx.author):
+            """Bans a member and sends them a dm with the reason."""
+            if delete_days > 7:
+                await ctx.send('Messages can only be purged up to 7 days.')
+                return
+            finalmessage = await self.sendbanmessage(ctx.guild, target, reason, ctx.author)
+            try:
+                await ctx.guild.ban(target, reason='{}: {}'.format(ctx.author, reason), delete_message_days=delete_days)
+            except Forbidden:
+                embed = Embed(title='Unable to ban `{}`.'.format(target), description='The bot is missing permissions.', color=0xF89817)
+                if finalmessage is not None:
+                    await finalmessage.delete()
+                await ctx.send(content=None, embed=embed)
+        else:
+            await ctx.send(content='You do not have permissions for this command')
 
     @ban.error
     async def ban_error(self, ctx, error): # Command error handling
         if isinstance(error, commands.CheckFailure):
             await ctx.send('You do not have permission to access this command.')
 
-    @commands.group()
-    @commands.check(is_admin)
+    @commands.command()
     async def blacklist(self, ctx, action, word):
-        if action == 'add':
-            if word not in self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['words']:
-                self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['words'].append(word)
-            else:
-                ctx.send(content="{} is already on the blacklist.".format(word))
-        if action in ['remove', 'delete']:
-            if word in self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['words']:
-                self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['words'].remove(word)
-            else:
-                ctx.send(content="{} is not on the blacklist.".format(word))
-        self.bot.save()
+        if Utils.checkPerms(ctx, ctx.author):
+            if action == 'add':
+                if word not in self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['words']:
+                    self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['words'].append(word)
+                else:
+                    ctx.send(content="{} is already on the blacklist.".format(word))
+            if action in ['remove', 'delete']:
+                if word in self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['words']:
+                    self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['words'].remove(word)
+                else:
+                    ctx.send(content="{} is not on the blacklist.".format(word))
+            self.bot.save()
+        else:
+            await ctx.send(content='You do not have permissions for this command')
 
     @commands.Cog.listener()
     async def on_member_join(self, member):

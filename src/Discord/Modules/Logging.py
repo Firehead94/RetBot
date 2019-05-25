@@ -4,7 +4,7 @@ from discord import DMChannel
 from discord.ext import commands
 from discord.ext.commands import Command, Group
 
-from src.Discord import RetBotDiscord
+from src.Discord import RetBotDiscord, Utils
 from src.Discord.Utils import generic_embed, COLORS
 
 
@@ -54,53 +54,62 @@ class Logging(commands.Cog):
     BEGING COMMANDS
     '''
     @commands.group(pass_context=True, invoke_without_command=True)
-    @commands.check(is_admin)
     async def log(self, ctx):
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
 
     @log.group(pass_context=True, name='blacklist', aliases=['hide','ignore'], invoke_without_command=True)
-    @commands.check(is_admin)
     async def blacklist(self, ctx):
-        if ctx.invoked_subcommand is None:
+        if Utils.checkPerms(ctx, ctx.author):
+            if ctx.invoked_subcommand is None:
+                self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels'].append(ctx.channel.id)
+                self.bot.save()
+                await ctx.send(content='{} added to the blacklist'.format(ctx.channel.mention))
+        else:
+            await ctx.send(content='You do not have permissions for this command')
+
+    @log.group(pass_context=True, name='setchannel', aliases=['set','channelset'], invoke_without_command=True)
+    async def setchannel(self, ctx):
+        if Utils.checkPerms(ctx, ctx.author):
+            if ctx.invoked_subcommand is None:
+                if self.bot.config['guilds'][str(ctx.guild.id)]['logchannel'] in self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels']:
+                    self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels'].remove(self.bot.config['guilds'][str(ctx.guild.id)]['logchannel'])
+                self.bot.config['guilds'][str(ctx.guild.id)]['logchannel'] = ctx.channel.id
+                if ctx.channel.id not in self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels']:
+                    self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels'].append(ctx.channel.id)
+                self.bot.save()
+                await ctx.send(content='Log channel set to {}'.format(ctx.channel.mention))
+        else:
+            await ctx.send(content='You do not have permissions for this command')
+
+    @blacklist.command(pass_context=True, name='add')
+    async def blacklist_add(self, ctx):
+        if Utils.checkPerms(ctx, ctx.author):
             self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels'].append(ctx.channel.id)
             self.bot.save()
             await ctx.send(content='{} added to the blacklist'.format(ctx.channel.mention))
-
-    @log.group(pass_context=True, name='setchannel', aliases=['set','channelset'], invoke_without_command=True)
-    @commands.check(is_admin)
-    async def setchannel(self, ctx):
-        if ctx.invoked_subcommand is None:
-            if self.bot.config['guilds'][str(ctx.guild.id)]['logchannel'] in self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels']:
-                self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels'].remove(self.bot.config['guilds'][str(ctx.guild.id)]['logchannel'])
-            self.bot.config['guilds'][str(ctx.guild.id)]['logchannel'] = ctx.channel.id
-            if ctx.channel.id not in self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels']:
-                self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels'].append(ctx.channel.id)
-            self.bot.save()
-            await ctx.send(content='Log channel set to {}'.format(ctx.channel.mention))
-
-    @blacklist.command(pass_context=True, name='add')
-    @commands.check(is_admin)
-    async def blacklist_add(self, ctx):
-        self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels'].append(ctx.channel.id)
-        self.bot.save()
-        await ctx.send(content='{} added to the blacklist'.format(ctx.channel.mention))
+        else:
+            await ctx.send(content='You do not have permissions for this command')
 
     @blacklist.command(pass_context=True, name='remove', aliases=['delete'])
-    @commands.check(is_admin)
     async def blacklist_remove(self, ctx):
-        self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels'].remove(ctx.channel.id)
-        self.bot.save()
-        await ctx.send(content='{} removed from the blacklist'.format(ctx.channel.mention))
+        if Utils.checkPerms(ctx, ctx.author):
+            self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels'].remove(ctx.channel.id)
+            self.bot.save()
+            await ctx.send(content='{} removed from the blacklist'.format(ctx.channel.mention))
+        else:
+            await ctx.send(content='You do not have permissions for this command')
 
     @setchannel.command(pass_context=True, name='clear', aliases=['stop', 'disable', 'none'])
-    @commands.check(is_admin)
     async def clearlogchannel(self, ctx):
-        if self.bot.config['guilds'][str(ctx.guild.id)]['logchannel'] in self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels']:
-            self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels'].remove(self.bot.config['guilds'][str(ctx.guild.id)]['logchannel'])
-        self.bot.config['guilds'][str(ctx.guild.id)]['logchannel'] = None
-        self.bot.save()
-        await ctx.send(content='Log channel cleared')
+        if Utils.checkPerms(ctx, ctx.author):
+            if self.bot.config['guilds'][str(ctx.guild.id)]['logchannel'] in self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels']:
+                self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels'].remove(self.bot.config['guilds'][str(ctx.guild.id)]['logchannel'])
+            self.bot.config['guilds'][str(ctx.guild.id)]['logchannel'] = None
+            self.bot.save()
+            await ctx.send(content='Log channel cleared')
+        else:
+            await ctx.send(content='You do not have permissions for this command')
 
     '''
     BEGIN LISTENERS
@@ -141,12 +150,12 @@ class Logging(commands.Cog):
         channel = self.bot.get_channel(self.bot.config['guilds'][str(guild.id)]['logchannel'])
         if channel is not None:
             reason = str((await guild.fetch_ban(member)).reason).split(':')
-            if reason:
+            try:
                 embed = generic_embed(title='User `{}` banned.'.format(member.mention),
                                       description='**Name:** {}\n**Reason:** `{}`'.format(reason[0],reason[1]),
                                       color=COLORS['ORANGE'],
                                       footer='User ID: {} | {}'.format(member.id, str(datetime.datetime.now())))
-            else:
+            except:
                 embed = generic_embed(title='User `{}` banned.'.format(member.mention),
                                       description='**Name:** {}'.format(member.name),
                                       color=COLORS['ORANGE'],

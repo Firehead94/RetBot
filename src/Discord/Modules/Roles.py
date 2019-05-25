@@ -3,7 +3,19 @@ import sys
 import typing
 from discord.ext import commands
 
+from src.Discord import Utils
 from src.Discord.Utils import generic_embed
+
+async def is_admin(ctx):
+    if is_owner(ctx):
+        return True
+    if ctx.bot.config['guilds'][str(ctx.guild.id)]['admins']:
+        return ctx.author.id in ctx.bot.config['guilds'][str(ctx.guild.id)]['admins']
+    await ctx.send(content="You do not have access to this command.")
+    return False
+
+def is_owner(ctx):
+    return ctx.message.author.id == int(ctx.bot.config['owner'])
 
 
 class Roles(commands.Cog):
@@ -18,72 +30,85 @@ class Roles(commands.Cog):
 
     @roles.command(name="reaction", pass_context=True)
     async def reaction_promote(self, ctx, emoji_id, role_id):
-        try:
-            self.bot.config['guilds'][str(ctx.guild.id)]['reactions']
-        except:
-            self.bot.config['guilds'][str(ctx.guild.id)]['reactions'] = {}
-            self.bot.save()
-        try:
-            if str(emoji_id) in self.bot.config['guilds'][str(ctx.guild.id)]['reactions']:
-                await ctx.send(content="Role already assigned to that reaction.")
-            else:
-                self.bot.config['guilds'][str(ctx.guild.id)]['reactions'][str(emoji_id)] = int(role_id)
+        if Utils.checkPerms(ctx, ctx.author):
+            try:
+                self.bot.config['guilds'][str(ctx.guild.id)]['reactions']
+            except:
+                self.bot.config['guilds'][str(ctx.guild.id)]['reactions'] = {}
                 self.bot.save()
-                await ctx.send(content="{} assigned to {}.".format(ctx.guild.get_role(int(role_id)).mention, self.bot.get_emoji(int(emoji_id))))
-        except:
-            pass
+            try:
+                if str(emoji_id) in self.bot.config['guilds'][str(ctx.guild.id)]['reactions']:
+                    await ctx.send(content="Role already assigned to that reaction.")
+                else:
+                    self.bot.config['guilds'][str(ctx.guild.id)]['reactions'][str(emoji_id)] = int(role_id)
+                    self.bot.save()
+                    await ctx.send(content="{} assigned to {}.".format(ctx.guild.get_role(int(role_id)).mention, self.bot.get_emoji(int(emoji_id))))
+            except:
+                pass
+        else:
+            await ctx.send(content='You do not have permissions for this command')
 
     @roles.command(name="add", pass_context=True)
     async def add_role(self, ctx, level, role_id):
-        level = level.lower()
-        try:
-            self.bot.config['guilds'][str(ctx.guild.id)]['roles']
-        except:
-            self.bot.config['guilds'][str(ctx.guild.id)]['roles'] = {}
-            self.bot.save()
-        try:
-            if int(role_id) not in self.bot.config['guilds'][str(ctx.guild.id)]['roles'][level]:
-                self.bot.config['guilds'][str(ctx.guild.id)]['roles'][level].append(int(role_id))
+        if Utils.checkPerms(ctx, ctx.author):
+            level = level.lower()
+            try:
+                self.bot.config['guilds'][str(ctx.guild.id)]['roles']
+            except:
+                self.bot.config['guilds'][str(ctx.guild.id)]['roles'] = {}
                 self.bot.save()
-                await ctx.send(content='Level {} created.\n{} is now listed as level {}.'.format(level, ctx.guild.get_role(int(role_id)), level))
-            else:
-                await ctx.send(content='Role already assigned to that level.')
-        except:
-            self.bot.config['guilds'][str(ctx.guild.id)]['roles'][level] = [int(role_id)]
-            self.bot.save()
-            await ctx.send(content='{} is now listed as level {}.'.format(ctx.guild.get_role(int(role_id)), level))
+            try:
+                if int(role_id) not in self.bot.config['guilds'][str(ctx.guild.id)]['roles'][level]:
+                    self.bot.config['guilds'][str(ctx.guild.id)]['roles'][level].append(int(role_id))
+                    self.bot.save()
+                    await ctx.send(content='Level {} created.\n{} is now listed as level {}.'.format(level, ctx.guild.get_role(int(role_id)), level))
+                else:
+                    await ctx.send(content='Role already assigned to that level.')
+            except:
+                self.bot.config['guilds'][str(ctx.guild.id)]['roles'][level] = [int(role_id)]
+                self.bot.save()
+                await ctx.send(content='{} is now listed as level {}.'.format(ctx.guild.get_role(int(role_id)), level))
+        else:
+            await ctx.send(content='You do not have permissions for this command')
 
     @roles.command(name='remove', pass_context=True)
     async def remove_role(self, ctx, level, role_id):
-        level = level.lower()
-        try:
-            self.bot.config['guilds'][str(ctx.guild.id)]['roles'][level].remove(int[role_id])
-            self.bot.save()
-            await ctx.send(content='{} removed from level {}.'.format(ctx.guild.get_role(int(role_id)), level))
-        except:
-            await ctx.send('Level doesnt exist.')
+        if Utils.checkPerms(ctx, ctx.author):
+            level = level.lower()
+            try:
+                self.bot.config['guilds'][str(ctx.guild.id)]['roles'][level].remove(int[role_id])
+                self.bot.save()
+                await ctx.send(content='{} removed from level {}.'.format(ctx.guild.get_role(int(role_id)), level))
+            except:
+                await ctx.send('Level doesnt exist.')
+        else:
+            await ctx.send(content='You do not have permissions for this command')
 
     @roles.command(name='print', pass_context=True)
     async def roles_print(self, ctx, level: typing.Optional[str]=None):
-        if level is None:
-            try:
-                content = ''
-                for level, roles in self.bot.config['guilds'][str(ctx.guild.id)]['roles'].items():
-                    content = content + '**{}**\n'.format(level)
-                    for role in roles:
+        if Utils.checkPerms(ctx, ctx.author):
+            Utils.checkPerms(ctx, ctx.author)
+            if level is None:
+                try:
+                    content = ''
+                    for level, roles in self.bot.config['guilds'][str(ctx.guild.id)]['roles'].items():
+                        content = content + '**{}**\n'.format(level)
+                        for role in roles:
+                            content = content + '{}\n'.format(ctx.guild.get_role(int(role)).mention)
+                    await ctx.send(content=None, embed=generic_embed(title='Internal Roles', description=content, author=self.bot.user))
+                except:
+                    await ctx.send(content='No roles found')
+            else:
+                try:
+                    level = level.lower()
+                    content = ''
+                    for role in self.bot.config['guilds'][str(ctx.guild.id)]['roles'][level]:
                         content = content + '{}\n'.format(ctx.guild.get_role(int(role)).mention)
-                await ctx.send(content=None, embed=generic_embed(title='Internal Roles', description=content, author=self.bot.user))
-            except:
-                await ctx.send(content='No roles found')
+                    await ctx.send(content=None, embed=generic_embed(title='{}'.format(level), description=content, author=self.bot.user))
+                except:
+                    await ctx.send(content='{} not found.'.format(level))
         else:
-            try:
-                level = level.lower()
-                content = ''
-                for role in self.bot.config['guilds'][str(ctx.guild.id)]['roles'][level]:
-                    content = content + '{}\n'.format(ctx.guild.get_role(int(role)).mention)
-                await ctx.send(content=None, embed=generic_embed(title='{}'.format(level), description=content, author=self.bot.user))
-            except:
-                await ctx.send(content='{} not found.'.format(level))
+            await ctx.send(content='You do not have permissions for this command')
 
     @commands.Cog.listener()
     async def on_message(self, message):

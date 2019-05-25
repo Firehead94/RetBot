@@ -12,6 +12,8 @@ COLORS = {
     'AQUA': Color(0x00FFFF)
 }
 
+def is_owner(ctx):
+    return ctx.message.author.id == int(ctx.bot.config['owner'])
 
 def generic_embed(*, title: typing.Optional[str]=None, description: typing.Optional[str]=None,
                   color: typing.Optional[Color]=Color(0xffffff), author: typing.Optional[User]=None, footer: typing.Optional[str]=None, fields: typing.Optional[dict]=None):
@@ -24,3 +26,32 @@ def generic_embed(*, title: typing.Optional[str]=None, description: typing.Optio
         for name,value in fields.items():
             embed.add_field(name=name, value=value, inline=False)
     return embed
+
+def get_perm_command(ctx, command):
+    permissions = ctx.bot.config['guilds'][str(ctx.guild.id)]['permissions']
+    for role, allowed in permissions.items():
+        if str(command) in allowed:
+            return role.lower()
+    return None
+
+def get_perm_member(ctx, member):
+    roles = ctx.bot.config['guilds'][str(ctx.guild.id)]['roles']
+    for role, ids in roles.items():
+        for id in ids:
+            for mem_role in member.roles:
+                if id == mem_role.id:
+                    return role.lower()
+    return None
+
+def checkPerms(ctx, member):
+    if is_owner(ctx):
+        return True
+    commandperm = get_perm_command(ctx, ctx.command)
+    memperm = get_perm_member(ctx, member)
+    if commandperm is not None and memperm is not None:
+        if commandperm == memperm:
+            return True
+        else:
+            return False
+    else:
+        return False
