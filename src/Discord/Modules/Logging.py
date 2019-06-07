@@ -118,7 +118,7 @@ class Logging(commands.Cog):
     async def on_member_join(self, member):
         channel = self.bot.get_channel(self.bot.config['guilds'][str(member.guild.id)]['logchannel'])
         if channel is not None:
-            embed = generic_embed(description='{} {}#{}'.format(member.mention, member.display_name, member.discriminator),
+            embed = generic_embed(description='{} **{}#{}**'.format(member.mention, member.display_name, member.discriminator),
                                   color=COLORS['GREEN'], footer='Joined At: {} | ID: {}'.format(member.joined_at, member.id))
             embed.set_author(name='Member Joined', icon_url=member.avatar_url)
             await channel.send(content=None, embed=embed)
@@ -127,7 +127,7 @@ class Logging(commands.Cog):
     async def on_member_remove(self, member):
         channel = self.bot.get_channel(self.bot.config['guilds'][str(member.guild.id)]['logchannel'])
         if channel is not None:
-            embed = generic_embed(description='{} {}#{}'.format(member.mention, member.display_name, member.discriminator),
+            embed = generic_embed(description='{} **{}#{}**'.format(member.mention, member.display_name, member.discriminator),
                                   color=COLORS['ORANGE'], footer='Left At: {} | ID: {}'.format(member.joined_at, member.id))
             embed.set_author(name='Member Left', icon_url=member.avatar_url)
             await channel.send(content=None, embed=embed)
@@ -136,7 +136,7 @@ class Logging(commands.Cog):
     async def on_member_update(self, before, after):
         channel = self.bot.get_channel(self.bot.config['guilds'][str(before.guild.id)]['logchannel'])
         if channel is not None and before.nick != after.nick:
-            embed = generic_embed(description='{} {}#{}'.format(after.mention, after.name, after.discriminator),
+            embed = generic_embed(description='{} **{}#{}**'.format(after.mention, after.name, after.discriminator),
                                   color=COLORS['YELLOW'], footer='User ID: {}'.format(before.id),
                                   fields={
                                       'Before': before.nick,
@@ -144,6 +144,21 @@ class Logging(commands.Cog):
                                   })
             embed.set_author(name='Member Name Changed'.format(before.name,before.discriminator), icon_url=after.avatar_url)
             await channel.send(content=None, embed=embed)
+
+    @commands.Cog.listener()
+    async def on_user_update(self, before, after):
+        if before.name != after.name:
+            for guild in self.bot.guilds:
+                if guild.get_member(after.id) is not None:
+                    channel = self.bot.get_channel(self.bot.config['guilds'][str(guild.id)]['logchannel'])
+                    embed = generic_embed(description='{} **{}#{}**'.format(after.mention, after.name, after.discriminator),
+                                          color=COLORS['YELLOW'], footer='User ID: {}'.format(before.id),
+                                          fields={
+                                              'Before': before.name,
+                                              'After': after.name
+                                          })
+                    embed.set_author(name='Member Name Changed'.format(before.name,before.discriminator), icon_url=after.avatar_url)
+                    await channel.send(content=None, embed=embed)
 
     @commands.Cog.listener()
     async def on_member_ban(self, guild, member):
@@ -195,7 +210,7 @@ class Logging(commands.Cog):
                 content = ''
                 for message in messages:
                     content = content + '**{}#{}**\n{}\n'.format(message.author.name, message.author.discriminator, message.content)
-                content = (content[:1500] + "\n...") if len(content) > 1500 else content
+                content = (content[-1500:] + "\n...") if len(content) > 1500 else content
                 embed = generic_embed(description='**{} Messages Deleted in <#{}>**\n'.format(str(len(messages)), payload.channel_id)+content,
                                       color=COLORS['RED'], author=self.bot.author)
             else:

@@ -4,6 +4,7 @@ from discord import Embed, Forbidden, Member, DMChannel
 from discord.ext import commands
 import src.Discord.RetBotDiscord as RetBotDiscord
 from src.Discord import Utils
+from src.Discord.Utils import generic_embed
 
 
 async def is_admin(ctx):
@@ -23,23 +24,24 @@ class General(commands.Cog):
         self.bot = bot
 
     def blacklist_filter(self, word, guild_id: typing.Optional[str]=None):
-        try:
-            guild_id = str(guild_id)
-            blacklist = self.bot.config['guilds'][guild_id]['blacklist']['words']
-            if blacklist and word is not None:
-                regex = '^(?!.*(?:\\b'
-                for word in blacklist:
-                    regex = regex+word+'\\b|'
-                regex = (regex[:regex.rindex('|')] if ('|' in regex) else regex)
-                regex = regex + '))'
-                match = re.match(regex, word, re.I)
-                print(match + '|{}|{}'.format(regex, word))
-                if match:
-                    return True
-                return False
-            return True
-        except:
-            return True
+        return True
+        #try:
+        #    guild_id = str(guild_id)
+        #    blacklist = self.bot.config['guilds'][guild_id]['blacklist']['words']
+        #    if blacklist and word is not None:
+        #        regex = '^(?!.*(?:\\b'
+        #        for word in blacklist:
+        #            regex = regex+word+'\\b|'
+        #        regex = (regex[:regex.rindex('|')] if ('|' in regex) else regex)
+        #        regex = regex + '))'
+        #        match = re.match(regex, word, re.I)
+        #        print(match + '|{}|{}'.format(regex, word))
+        #        if match:
+        #            return True
+        #        return False
+        #    return True
+        #except:
+        #    return True
 
     async def sendbanmessage(self, guild, user, reason, staffmember):
         embed=Embed(title='Reason: `{}`'.format(reason), description='You can appeal this ban by filling out the [ban appeal form](https://goo.gl/forms/tzFK05hyQVN3GEbt2)', color=0xff0000)
@@ -54,7 +56,13 @@ class General(commands.Cog):
 
     @commands.command()
     async def ban(self, ctx, target: Member, delete_days: typing.Optional[int] = 0, *, reason: typing.Optional[str] = None):
-        if Utils.checkPerms(ctx, ctx.author):
+        canban = True
+        for role in ctx.author.roles:
+            for roleTar in target.roles:
+                if role.id == roleTar.id:
+                    canban = False
+
+        if Utils.checkPerms(ctx, ctx.author) and canban:
             """Bans a member and sends them a dm with the reason."""
             if delete_days > 7:
                 await ctx.send('Messages can only be purged up to 7 days.')
@@ -68,7 +76,7 @@ class General(commands.Cog):
                     await finalmessage.delete()
                 await ctx.send(content=None, embed=embed)
         else:
-            await ctx.send(content='You do not have permissions for this command')
+            await ctx.send(content='You do not have permissions for this command or target has higher permissions that you.')
 
     @ban.error
     async def ban_error(self, ctx, error): # Command error handling
@@ -76,7 +84,7 @@ class General(commands.Cog):
             await ctx.send('You do not have permission to access this command.')
 
     @commands.command()
-    async def blacklist(self, ctx, action, word):
+    async def blacklist(self, ctx, action, word: typing.Optional[str]=None):
         if Utils.checkPerms(ctx, ctx.author):
             if action == 'add':
                 if word not in self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['words']:
@@ -88,6 +96,11 @@ class General(commands.Cog):
                     self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['words'].remove(word)
                 else:
                     ctx.send(content="{} is not on the blacklist.".format(word))
+            if action == 'print':
+                content = ''
+                for word in self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['words']:
+                    content = content + word + '\n'
+                await ctx.send(content=None, embed=generic_embed(title="Blacklist", description=content, author=self.bot.user))
             self.bot.save()
         else:
             await ctx.send(content='You do not have permissions for this command')

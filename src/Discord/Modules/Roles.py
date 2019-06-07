@@ -28,6 +28,17 @@ class Roles(commands.Cog):
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
 
+    @roles.command(name="mute", pass_context=True)
+    async def setMute(self, ctx, role_id):
+        if Utils.checkPerms(ctx, ctx.author):
+            self.bot.config["guilds"][str(ctx.guild.id)]["roles"]["mute"] = {}
+            self.bot.config["guilds"][str(ctx.guild.id)]["roles"]["mute"]["role"] = int(role_id)
+            self.bot.config["guilds"][str(ctx.guild.id)]["roles"]["mute"]["members"] = []
+            self.bot.save()
+            await ctx.send(content="<@&{}> set to mute role.".format(role_id))
+        else:
+            await ctx.send(content='You do not have permissions for this command')
+
     @roles.command(name="reaction", pass_context=True)
     async def reaction_promote(self, ctx, emoji_id, role_id):
         if Utils.checkPerms(ctx, ctx.author):
@@ -127,6 +138,42 @@ class Roles(commands.Cog):
                     guild = self.bot.get_guild(payload.guild_id)
                     role_id = self.bot.config['guilds'][str(payload.guild_id)]['reactions'][str(payload.emoji.id)]
                     await guild.get_member(payload.user_id).add_roles(guild.get_role(role_id), reason="Clicked on Highlight")
+
+    @commands.Cog.listener()
+    async def on_member_update(self, before, after):
+        before_ids = []
+        after_ids = []
+        try:
+            mute_id = self.bot.config["guilds"][str(after.guild.id)]["roles"]["mute"]["role"]
+            for roleB in before.roles:
+                before_ids.append(roleB.id)
+            for roleA in after.roles:
+                after_ids.append(roleA.id)
+            union = set(before_ids).union(after_ids)
+            intersection = set(before_ids).intersection(after_ids)
+            difference = set(union).difference(intersection)
+            try:
+                if mute_id in difference:
+                    if mute_id in before_ids:
+                        if before.id in self.bot.config["guilds"][str(after.guild.id)]["roles"]["mute"]["members"]:
+                            self.bot.config["guilds"][str(after.guild.id)]["roles"]["mute"]["members"].remove(after.id)
+                    if mute_id in after_ids:
+                        if after.id not in self.bot.config["guilds"][str(after.guild.id)]["roles"]["mute"]["members"]:
+                            self.bot.config["guilds"][str(after.guild.id)]["roles"]["mute"]["members"].append(after.id)
+                    self.bot.save()
+            except:
+                pass
+        except:
+            pass
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        try:
+            if member.id in self.bot.config["guilds"][str(member.guild.id)]["roles"]["mute"]["members"]:
+                await member.add_roles(member.guild.get_role(self.bot.config["guilds"][str(member.guild.id)]["roles"]["mute"]["role"]), reason="Mute evasion")
+        except:
+            pass
+
 
 
 def setup(bot):

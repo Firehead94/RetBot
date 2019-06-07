@@ -1,0 +1,29 @@
+{
+	"token": ,
+	"prefix": ,
+	"owner": ,
+	"guilds": {
+		"GUILD ID": {
+			"blacklist": [],
+			"roles": {
+				"ROLE_NAME": id
+			},
+			"members": {
+				"USER ID": {
+					"roles": []
+				}
+			},
+			"log": {
+				"channel": ,
+				"ignored": []
+			},
+			"channels": {
+				"CHANNEL ID": {
+					"watched": False,
+					"watch_for": [message, emote],
+					"watch_emotes": []
+				}
+			},
+			"permissions
+				
+					
