@@ -2,9 +2,9 @@ import re
 import typing
 from discord import Embed, Forbidden, Member, DMChannel
 from discord.ext import commands
-import src.Discord.RetBotDiscord as RetBotDiscord
-from src.Discord import Utils
-from src.Discord.Utils import generic_embed
+
+import Utils
+from Utils import generic_embed
 
 
 async def is_admin(ctx):

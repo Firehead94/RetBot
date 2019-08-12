@@ -1,7 +1,7 @@
 from discord.ext import commands
 
-from src.Discord import Utils
-from src.Discord.Utils import generic_embed
+import Utils
+from Utils import generic_embed
 
 
 async def is_admin(ctx):

@@ -11,7 +11,7 @@ import typing
 from discord import Color, Embed, Message, TextChannel, User, Member, DMChannel, Forbidden
 from discord.ext import commands
 
-from src.Discord import Utils
+import Utils
 
 
 class RetBotDiscord(commands.Bot):

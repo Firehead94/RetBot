@@ -1,7 +1,5 @@
 from os import getcwd
 
-import src.Discord.RetBotDiscord
-
 
 '''
 Setup Discord bot

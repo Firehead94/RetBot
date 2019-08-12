@@ -3,7 +3,7 @@ import asyncio
 import typing
 from discord.ext import commands
 
-from src.Discord import Utils
+import Utils
 
 
 async def is_admin(ctx):

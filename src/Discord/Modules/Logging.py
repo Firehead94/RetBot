@@ -4,8 +4,8 @@ from discord import DMChannel
 from discord.ext import commands
 from discord.ext.commands import Command, Group
 
-from src.Discord import RetBotDiscord, Utils
-from src.Discord.Utils import generic_embed, COLORS
+import Utils
+from Utils import generic_embed, COLORS
 
 
 def enabled(ctx):
