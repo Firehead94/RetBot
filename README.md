@@ -43,6 +43,6 @@ Unavailable
 
 
 #### Other Projects
-[GuildBot](https://github.com/Firehead94/GuildBot)
-[RoleAssist](https://github.com/Firehead94/RoleAssist)
-[CombatLogs](https://github.com/Firehead94/CombatLogs)
+* [GuildBot](https://github.com/Firehead94/GuildBot)
+* [RoleAssist](https://github.com/Firehead94/RoleAssist)
+* [CombatLogs](https://github.com/Firehead94/CombatLogs)
