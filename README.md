@@ -40,3 +40,9 @@ Discord bot built for EsfandTV Discord @ http://discord.gg/esfandtv
 3) !quest
 ```
 Unavailable
+
+
+#### Other Projects
+[GuildBot](https://github.com/Firehead94/GuildBot)
+[RoleAssist](https://github.com/Firehead94/RoleAssist)
+[CombatLogs](https://github.com/Firehead94/CombatLogs)
