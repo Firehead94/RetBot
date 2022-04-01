@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="ca7c60f6-0034-4512-ae74-31eb5e9a47c9" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/Modules/ReactionRoles.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Modules/Twitch.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Modules/Twitter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/.name" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Modules/Channel.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modules/Channel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Modules/General.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modules/General.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Modules/Logging.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modules/Logging.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Modules/Permissions.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modules/_Permissions.py.old" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Modules/Roles.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modules/_Roles.py.old" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RetBotDiscord.py" beforeDir="false" afterPath="$PROJECT_DIR$/RetBotDiscord.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RetBot.py" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CodeStyleSettingsInfer">
+    <option name="done" value="true" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="JupyterTrust" id="1c32a304-6157-4e9c-b302-2ed7b47a21a5" />
+  <component name="ProjectCodeStyleSettingsMigration">
+    <option name="version" value="1" />
+  </component>
+  <component name="ProjectId" id="1mr2bS2UxZodQRAbsbUxWp9gCEq" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="last_opened_file_path" value="$USER_HOME$/My Documents" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="ca7c60f6-0034-4512-ae74-31eb5e9a47c9" name="Default Changelist" comment="" />
+      <created>1610237461675</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1610237461675</updated>
+      <workItem from="1610237463141" duration="2000" />
+      <workItem from="1610590653126" duration="28000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="1500" y="460" key="FileChooserDialogImpl" timestamp="1610590672156">
+      <screen x="0" y="0" width="3440" height="1410" />
+    </state>
+    <state x="1500" y="460" key="FileChooserDialogImpl/0.0.3440.1410/-2560.0.2560.1410@0.0.3440.1410" timestamp="1610590672156" />
+  </component>
+</project>

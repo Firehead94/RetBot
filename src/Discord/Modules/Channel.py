@@ -3,8 +3,6 @@ import asyncio
 import typing
 from discord.ext import commands
 
-from src.Discord import Utils
-
 
 async def is_admin(ctx):
     if is_owner(ctx):
@@ -25,7 +23,7 @@ class Channel(commands.Cog):
 
     @commands.command(pass_context=True, name='purge', aliases=['delete','remove'])
     async def purgeChannel(self, ctx, number):
-        if Utils.checkPerms(ctx, ctx.author):
+        if ctx.author.guild_permissions.manage_channels:
             list = []
             count = 0
             async for msg in ctx.channel.history(limit=int(number)):
@@ -48,7 +46,7 @@ class Channel(commands.Cog):
 
     @channel.command(name="mark", pass_context=True)
     async def mark(self, ctx, reaction_id):
-        if Utils.checkPerms(ctx, ctx.author):
+        if ctx.author.guild_permissions.manage_channels:
             try:
                 self.bot.config['guilds'][str(ctx.guild.id)]['watch']
             except:
@@ -66,7 +64,7 @@ class Channel(commands.Cog):
 
     @channel.command(name="unmark", pass_context=True)
     async def unmark(self, ctx, reaction_id):
-        if Utils.checkPerms(ctx, ctx.author):
+        if ctx.author.guild_permissions.manage_channels:
             try:
                 self.bot.config['guilds'][str(ctx.guild.id)]['watch'][str(ctx.channel.id)].remove(int(reaction_id))
                 self.bot.save()

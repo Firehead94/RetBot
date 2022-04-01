@@ -1,11 +1,14 @@
-import datetime
+﻿import datetime
 
 from discord import DMChannel
 from discord.ext import commands
 from discord.ext.commands import Command, Group
 
-from src.Discord import RetBotDiscord, Utils
-from src.Discord.Utils import generic_embed, COLORS
+import Utils
+from Utils import generic_embed, COLORS
+import pytz
+
+
 
 
 def enabled(ctx):
@@ -27,6 +30,7 @@ class Logging(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.est = pytz.timezone('US/Eastern')
 
     async def cog_check(self,ctx):
         try:
@@ -60,7 +64,7 @@ class Logging(commands.Cog):
 
     @log.group(pass_context=True, name='blacklist', aliases=['hide','ignore'], invoke_without_command=True)
     async def blacklist(self, ctx):
-        if Utils.checkPerms(ctx, ctx.author):
+        if ctx.author.guild_permissions.manage_channels:
             if ctx.invoked_subcommand is None:
                 self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels'].append(ctx.channel.id)
                 self.bot.save()
@@ -70,7 +74,7 @@ class Logging(commands.Cog):
 
     @log.group(pass_context=True, name='setchannel', aliases=['set','channelset'], invoke_without_command=True)
     async def setchannel(self, ctx):
-        if Utils.checkPerms(ctx, ctx.author):
+        if ctx.author.guild_permissions.administrator:
             if ctx.invoked_subcommand is None:
                 if self.bot.config['guilds'][str(ctx.guild.id)]['logchannel'] in self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels']:
                     self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels'].remove(self.bot.config['guilds'][str(ctx.guild.id)]['logchannel'])
@@ -84,7 +88,7 @@ class Logging(commands.Cog):
 
     @blacklist.command(pass_context=True, name='add')
     async def blacklist_add(self, ctx):
-        if Utils.checkPerms(ctx, ctx.author):
+        if ctx.author.guild_permissions.manage_channels:
             self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels'].append(ctx.channel.id)
             self.bot.save()
             await ctx.send(content='{} added to the blacklist'.format(ctx.channel.mention))
@@ -93,7 +97,7 @@ class Logging(commands.Cog):
 
     @blacklist.command(pass_context=True, name='remove', aliases=['delete'])
     async def blacklist_remove(self, ctx):
-        if Utils.checkPerms(ctx, ctx.author):
+        if ctx.author.guild_permissions.manage_channels:
             self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels'].remove(ctx.channel.id)
             self.bot.save()
             await ctx.send(content='{} removed from the blacklist'.format(ctx.channel.mention))
@@ -102,7 +106,7 @@ class Logging(commands.Cog):
 
     @setchannel.command(pass_context=True, name='clear', aliases=['stop', 'disable', 'none'])
     async def clearlogchannel(self, ctx):
-        if Utils.checkPerms(ctx, ctx.author):
+        if ctx.author.guild_permissions.administrator:
             if self.bot.config['guilds'][str(ctx.guild.id)]['logchannel'] in self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels']:
                 self.bot.config['guilds'][str(ctx.guild.id)]['blacklist']['channels'].remove(self.bot.config['guilds'][str(ctx.guild.id)]['logchannel'])
             self.bot.config['guilds'][str(ctx.guild.id)]['logchannel'] = None
@@ -119,7 +123,7 @@ class Logging(commands.Cog):
         channel = self.bot.get_channel(self.bot.config['guilds'][str(member.guild.id)]['logchannel'])
         if channel is not None:
             embed = generic_embed(description='{} **{}#{}**'.format(member.mention, member.display_name, member.discriminator),
-                                  color=COLORS['GREEN'], footer='Joined At: {} | ID: {}'.format(member.joined_at, member.id))
+                                  color=COLORS['GREEN'], footer='Joined At: {} | ID: {}'.format(member.joined_at.astimezone(self.est), member.id))
             embed.set_author(name='Member Joined', icon_url=member.avatar_url)
             await channel.send(content=None, embed=embed)
 
@@ -128,7 +132,7 @@ class Logging(commands.Cog):
         channel = self.bot.get_channel(self.bot.config['guilds'][str(member.guild.id)]['logchannel'])
         if channel is not None:
             embed = generic_embed(description='{} **{}#{}**'.format(member.mention, member.display_name, member.discriminator),
-                                  color=COLORS['ORANGE'], footer='Left At: {} | ID: {}'.format(member.joined_at, member.id))
+                                  color=COLORS['ORANGE'], footer='Left At: {} | ID: {}'.format(datetime.datetime.now().astimezone(self.est), member.id))
             embed.set_author(name='Member Left', icon_url=member.avatar_url)
             await channel.send(content=None, embed=embed)
 
@@ -199,7 +203,7 @@ class Logging(commands.Cog):
                                       }, author=before.author)
                 await channel.send(content=None, embed=embed)
         except:
-            print("Message Edit Error: {} is no longer in this discord.".format(before.name))
+            print("Message Edit Error: {} is no longer in this discord.".format(before.author.name))
 
     @commands.Cog.listener()
     async def on_raw_bulk_message_delete(self, payload):
@@ -208,9 +212,10 @@ class Logging(commands.Cog):
             messages = payload.cached_messages
             if messages is not None:
                 content = ''
-                for message in messages:
+                for message in reversed(messages):
                     content = content + '**{}#{}**\n{}\n'.format(message.author.name, message.author.discriminator, message.content)
-                content = (content[-1500:] + "\n...") if len(content) > 1500 else content
+                    if len(content) > 1500:
+                        break
                 embed = generic_embed(description='**{} Messages Deleted in <#{}>**\n'.format(str(len(messages)), payload.channel_id)+content,
                                       color=COLORS['RED'], author=self.bot.author)
             else:

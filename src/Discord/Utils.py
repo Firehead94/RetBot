@@ -27,6 +27,7 @@ def generic_embed(*, title: typing.Optional[str]=None, description: typing.Optio
             embed.add_field(name=name, value=value, inline=False)
     return embed
 
+'''
 def get_perm_command(ctx, command):
     permissions = ctx.bot.config['guilds'][str(ctx.guild.id)]['permissions']
     for role, allowed in permissions.items():
@@ -55,3 +56,4 @@ def checkPerms(ctx, member):
             return False
     else:
         return False
+'''

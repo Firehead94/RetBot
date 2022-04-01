@@ -11,7 +11,7 @@ import typing
 from discord import Color, Embed, Message, TextChannel, User, Member, DMChannel, Forbidden
 from discord.ext import commands
 
-from src.Discord import Utils
+import Utils
 
 
 class RetBotDiscord(commands.Bot):
@@ -27,18 +27,18 @@ class RetBotDiscord(commands.Bot):
     def loadModules(self):
         cogFolder = 'Modules'
         for extension in [f.replace('.py', '') for f in os.listdir(cogFolder) if isfile(join(cogFolder, f))]:
-            try:
-                retBot.load_extension(name=cogFolder+'.'+extension)
-                print('Extension {} Loaded Successfully!'.format(extension))
-            except Exception as e:
-                exc = '{}: {}'.format(type(e).__name__, e)
-                print('Failed to load extension {}\n{}'.format(extension, exc))
+            if '_' != extension[0]:
+                try:
+                    retBot.load_extension(name=cogFolder+'.'+extension)
+                    print('Extension {} Loaded Successfully!'.format(extension))
+                except Exception as e:
+                    exc = '{}: {}'.format(type(e).__name__, e)
+                    print('Failed to load extension {}\n{}'.format(extension, exc))
 
     async def send_cmd_help(self, ctx):
         await ctx.send(content="No subcommand found. Please visit <https://github.com/Firehead94/RetBot> for usage information.")
 
 def initialize():
-    os.chdir(os.path.dirname(sys.argv[0] + 'Discord'))
     if isfile('discord.json'):
         config = json.load(open('discord.json'))
     else:
@@ -67,10 +67,12 @@ def initialize():
         config['guilds']
     except:
         config['guilds'] = {}
-    retBot = RetBotDiscord(command_prefix=config['prefix'], description='RetBot built by Firehead94', max_messages=10000)
+    intents = discord.Intents.all()
+    retBot = RetBotDiscord(command_prefix=config['prefix'], description='RetBot built by Firehead94', max_messages=10000, guild_subscriptions=True, intents=intents)
     retBot.author = retBot.user
     retBot.config = config
     retBot.save()
+
 
     async def is_admin(ctx):
         if is_owner(ctx.message):
@@ -104,7 +106,7 @@ def initialize():
 
     @retBot.command()
     async def reload(ctx):
-        if Utils.checkPerms(ctx, ctx.author):
+        if ctx.author.guild_permissions.administrator:
             try:
                 retBot.config = json.load(open('discord.json'))
                 await ctx.send(content='Reload successful')
@@ -127,7 +129,8 @@ def initialize():
                 'admins':[],
                 'logchannel': None,
                 'watch':{},
-                'reactions':{}
+                'reactions':{},
+                'reactroles':{}
             }
             retBot.save()
 
@@ -156,7 +159,8 @@ def initialize():
                                                                 'words':[]
                                                             },
                                                             'admins':[],
-                                                            'logchannel': None
+                                                            'logchannel': None,
+                                                            'reactroles':{}
                                                         }
                 retBot.save()
             print('- '+guild.name)
