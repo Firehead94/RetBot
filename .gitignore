@@ -116,3 +116,4 @@ dmypy.json
 src/Discord/discord.json
 
 *.json
+src/Discord/Modules/Twitch.py
